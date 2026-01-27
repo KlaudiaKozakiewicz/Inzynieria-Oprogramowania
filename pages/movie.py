@@ -3,9 +3,6 @@ import requests
 import pandas as pd
 import altair as alt # biblioteka wykresów
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 API_KEY = os.getenv("TMDB_API_KEY")
 
