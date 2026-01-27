@@ -104,12 +104,14 @@ Dane obejmują m.in.:
 
 ## Struktura projektu
 
+- .streamlit/
+    - config.toml
 - main.py                
-- pages/
+- pages/ 
+    - analysis.py
     - movie.py            
-    - analysis.py         
+    - recommendations.py        
     - what2watch.py       
-    - recommendations.py  
 - requirements.txt
 - README.md
 
