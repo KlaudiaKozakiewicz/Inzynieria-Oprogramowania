@@ -104,7 +104,7 @@ Dane obejmują m.in.:
 
 ## Struktura projektu
 
-```markdown
+
 ```text
 Inżynieria-Oprogramownia/
 ├── main.py          # Strona główna aplikacji
