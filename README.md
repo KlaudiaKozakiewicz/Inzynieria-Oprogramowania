@@ -102,4 +102,16 @@ Dane obejmują m.in.:
 
 ---
 
+## Struktura projektu
+
+├── main.py                 # Strona główna aplikacji
+├── pages/
+│   ├── movie.py            # Szczegóły i analiza filmu
+│   ├── analysis.py         # Analiza biznesowa
+│   ├── what2watch.py       # Wyszukiwanie po filtrach
+│   └── recommendations.py  # Rekomendacje
+├── requirements.txt
+└── README.md
+
+
 
