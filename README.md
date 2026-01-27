@@ -1,7 +1,7 @@
 # Inzynieria-Oprogramowania
 Projekt z inżynierii oprogramowania 
 
-# Aplikacja do rekomendacji i analizy filmów – Streamlit + TMDB API
+# Aplikacja do rekomendacji i analizy popularności filmów
 
 Interaktywna aplikacja webowa do **wyszukiwania, analizy i wizualizacji danych filmowych** z wykorzystaniem oficjalnego API serwisu **The Movie Database (TMDB)**.  
 Projekt został zrealizowany w celach **edukacyjnych i demonstracyjnych**.
