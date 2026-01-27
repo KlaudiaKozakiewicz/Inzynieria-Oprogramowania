@@ -39,6 +39,27 @@ Projekt ma charakter **edukacyjny**, pokazując:
 
 ---
 
+## Źródło danych – TMDB
+
+Projekt korzysta z oficjalnego API serwisu **The Movie Database (TMDB)**:
+
+- Strona TMDB:  
+  <https://www.themoviedb.org/>
+
+- Dokumentacja API:  
+  <https://developer.themoviedb.org/docs>
+
+Dane obejmują m.in.:
+- filmy,
+- gatunki,
+- popularność,
+- oceny użytkowników,
+- budżety i przychody (jeśli dostępne).
+
+> Uwaga: Nie wszystkie filmy posiadają kompletne dane finansowe – jest to ograniczenie API TMDB.
+
+---
+
 ## Funkcjonalności
 
 ### Wyszukiwanie filmów
@@ -81,27 +102,6 @@ Projekt ma charakter **edukacyjny**, pokazując:
 
 ---
 
-## Źródło danych – TMDB
-
-Projekt korzysta z oficjalnego API serwisu **The Movie Database (TMDB)**:
-
-- Strona TMDB:  
-  https://www.themoviedb.org/
-
-- Dokumentacja API:  
-  https://developer.themoviedb.org/docs
-
-Dane obejmują m.in.:
-- filmy,
-- gatunki,
-- popularność,
-- oceny użytkowników,
-- budżety i przychody (jeśli dostępne).
-
-> Uwaga: Nie wszystkie filmy posiadają kompletne dane finansowe – jest to ograniczenie API TMDB.
-
----
-
 ## Struktura projektu
 
 - main.py                
@@ -113,5 +113,12 @@ Dane obejmują m.in.:
 - requirements.txt
 - README.md
 
+---
 
+## Wymagania
+
+Aby zaimportować biblioteki potrzebne do projektu, należy wykonać polecenie
+```sh
+pip install -r requirements.txt
+```
 
