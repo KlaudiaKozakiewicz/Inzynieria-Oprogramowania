@@ -5,6 +5,9 @@ import requests
 from streamlit_searchbox import st_searchbox
 from datetime import date
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("TMDB_API_KEY")
 
