@@ -2,9 +2,6 @@ import streamlit as st
 import requests
 import pandas as pd
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 API_KEY = os.getenv("TMDB_API_KEY")
 
