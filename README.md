@@ -104,16 +104,20 @@ Dane obejmują m.in.:
 
 ## Struktura projektu
 
-- .streamlit/
-    - config.toml
-- main.py                
-- pages/ 
-    - analysis.py
-    - movie.py            
-    - recommendations.py        
-    - what2watch.py       
-- requirements.txt
-- README.md
+```markdown
+```text
+Inżynieria-Oprogramownia/
+├── main.py          # Strona główna aplikacji
+├── .streamlit/
+    ├── config.toml         # Color theme
+├── pages/
+    ├── analysis.py         # Strona z analizami
+    ├── movie.py            # Strona wybranego filmu
+    ├── recommendations.py  # Strona z rekomendacjami
+    ├── what2watch.py
+├── requirements.txt
+├── Streamlit.pdf     # Prezentacja streamlit      
+└── README.md     
 
 ---
 
