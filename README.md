@@ -118,7 +118,7 @@ Inżynieria-Oprogramownia/
 ├── requirements.txt
 ├── Streamlit.pdf     # Prezentacja streamlit      
 └── README.md     
-
+```
 ---
 
 ## Wymagania
