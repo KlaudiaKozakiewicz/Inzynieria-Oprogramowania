@@ -35,7 +35,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.divider()
+#st.divider()
+st.markdown(
+"<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 20px;'>",
+unsafe_allow_html=True
+)
 
 # Ustawienia strony
 st.set_page_config(page_title="Filmy", page_icon="🎬", layout="wide")
