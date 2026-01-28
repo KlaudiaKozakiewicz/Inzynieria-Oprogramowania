@@ -1,10 +1,13 @@
 # Inzynieria-Oprogramowania
 Projekt z inżynierii oprogramowania 
 
-# Aplikacja do rekomendacji i analizy popularności filmów
+# CineMate: Aplikacja do rekomendacji i analizy popularności filmów
 
 Interaktywna aplikacja webowa do **wyszukiwania, analizy i wizualizacji danych filmowych** z wykorzystaniem oficjalnego API serwisu **The Movie Database (TMDB)**.  
 Projekt został zrealizowany w celach **edukacyjnych i demonstracyjnych**.
+
+Aplikacja ostała opublikowana w chmurze Streamlit Cloud i jest dostępna online adresem:
+[https://inzynieria-oprogramowania-k4grvgfz3appppcnhaqvdndw.streamlit.app/](https://inzynieria-oprogramowania-k4grvgfz3appppcnhaqvdndw.streamlit.app/)
 
 ---
 
@@ -34,8 +37,7 @@ Projekt ma charakter **edukacyjny**, pokazując:
 - praktyczne wykorzystanie biblioteki **Streamlit**,
 - analiza i wizualizacja danych filmowych,
 - prezentacja wskaźników popularności i prostych metryk biznesowych,
-- stworzenie czytelnego dashboardu analitycznego,
-- demonstracja dobrych praktyk (cache, obsługa braków danych).
+- stworzenie czytelnego dashboardu analitycznego.
 
 ---
 
@@ -97,13 +99,14 @@ Dane obejmują m.in.:
 - **Streamlit** – interfejs webowy
 - **Pandas** – przetwarzanie danych
 - **Altair** – wizualizacja danych
+- **Streamlit Searchbox** - Autocomplete wyszukiwania filmów w UI
 - **Requests** – komunikacja HTTP
+- **OS** - Obsługa zmiennych środowiskowych (TMDB API key)
 - **TMDB API** – źródło danych filmowych
 
 ---
 
 ## Struktura projektu
-
 
 ```text
 Inżynieria-Oprogramownia/
@@ -123,7 +126,7 @@ Inżynieria-Oprogramownia/
 
 ## Wymagania
 
-Aby zaimportować biblioteki potrzebne do projektu, należy wykonać polecenie
+Aby zaimportować biblioteki potrzebne do lokalnego otworzenia projektu, należy wykonać polecenie
 ```sh
 pip install -r requirements.txt
 ```
