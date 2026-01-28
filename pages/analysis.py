@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📊 Analiza biznesowa filmów")
+st.title("Analiza biznesowa filmów")
 
 # ===================== INICJALIZACJA ST STATE =====================
 if "movies" not in st.session_state:
@@ -123,13 +123,13 @@ col3.metric("Filmy dochodowe", f"{len(df[df['ROI'] > 0])} / {len(df)}",
 st.divider()
 
 # ===================== WYKRESY =====================
-st.subheader("💰 Budżet vs Przychody")
+st.subheader("Budżet vs Przychody")
 st.bar_chart(df.set_index("Tytuł")[["Budżet", "Przychody"]])
 
-st.subheader("📈 ROI")
+st.subheader("ROI")
 st.bar_chart(df.set_index("Tytuł")["ROI"])
 
-st.subheader("📋 Dane szczegółowe")
+st.subheader("Dane szczegółowe")
 st.dataframe(
     df.style.format({
         "Budżet": "${:,.0f}",
