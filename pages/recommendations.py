@@ -8,6 +8,16 @@ API_KEY = os.getenv("TMDB_API_KEY")
 
 # Aplikacja korzysta z danych TMDB API, ale nie jest oficjalnie powiązana z TMDB.
 
+# Ukrycie paska bocznego
+hide_streamlit_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header > div:nth-of-type(1) {display: none;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 st.set_page_config(page_title="Rekomendacje", page_icon="🎬", layout="wide", )
 st.title("🎬 Znajdź rekomendacje", text_alignment="center")
 st.caption("Wyszukaj film, aby znaleźć rekomendacje na jego podstawie.", text_alignment="center")
