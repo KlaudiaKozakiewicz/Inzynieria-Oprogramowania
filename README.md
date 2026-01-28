@@ -120,6 +120,7 @@ Inżynieria-Oprogramownia/
     ├── recommendations.py  # Strona z rekomendacjami
     ├── what2watch.py
 ├── requirements.txt
+├── .gitignore        # lista plików, które GitHub ma ignorować
 ├── Streamlit.pdf     # Prezentacja streamlit      
 └── README.md     
 ```
