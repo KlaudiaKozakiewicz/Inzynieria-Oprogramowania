@@ -35,10 +35,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-#st.divider()
 st.markdown(
-"<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 20px;'>",
-unsafe_allow_html=True
+    "<hr style='border: 0.5px solid #ddd; margin-top: 30px; margin-bottom: 5px;'>",
+    unsafe_allow_html=True
 )
 
 # Ustawienia strony
