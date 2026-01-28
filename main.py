@@ -8,6 +8,8 @@ import os
 
 API_KEY = os.getenv("TMDB_API_KEY")
 
+# Aplikacja korzysta z danych TMDB API, ale nie jest oficjalnie powiązana z TMDB.
+
 # === Test poprawności API ===
 #if not API_KEY:
 #    st.error("Brak TMDB_API_KEY! Dodaj go w ustawieniach Streamlit.")
@@ -27,7 +29,7 @@ st.markdown(
         padding: 15px;
         border-radius: 10px;
     ">
-        <h1 style="color:white; text-align:center;">🎬 Filmy</h1>
+        <h1 style="color:white; text-align:center;">🎬 CineMate</h1>
     </div>
     """,
     unsafe_allow_html=True
@@ -213,6 +215,11 @@ with left:
 
     st.subheader(f"Top 20 – {selected_tab}" + (f" / {selected_genre}" if selected_genre else ""),
                  text_alignment="center")
+    
+    st.markdown(
+                "<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 20px;'>",
+                unsafe_allow_html=True
+            )
 
     ## Wyświetlanie wyszukanych filmów:
     for movie in movies:
