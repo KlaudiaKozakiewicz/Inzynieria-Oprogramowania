@@ -6,8 +6,9 @@ Projekt z inżynierii oprogramowania
 Interaktywna aplikacja webowa do **wyszukiwania, analizy i wizualizacji danych filmowych** z wykorzystaniem oficjalnego API serwisu **The Movie Database (TMDB)**.  
 Projekt został zrealizowany w celach **edukacyjnych i demonstracyjnych**.
 
-Aplikacja ostała opublikowana w chmurze Streamlit Cloud i jest dostępna online adresem:
-[https://inzynieria-oprogramowania-k4grvgfz3appppcnhaqvdndw.streamlit.app/](https://inzynieria-oprogramowania-k4grvgfz3appppcnhaqvdndw.streamlit.app/)
+Aplikacja została opublikowana w chmurze Streamlit Cloud i jest dostępna online adresem:
+
+<https://inzynieria-oprogramowania-k4grvgfz3appppcnhaqvdndw.streamlit.app/>
 
 ---
 
