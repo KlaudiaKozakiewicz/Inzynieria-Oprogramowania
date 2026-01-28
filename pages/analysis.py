@@ -10,6 +10,16 @@ st.set_page_config(
     layout="wide"
 )
 
+# Ukrycie paska bocznego
+hide_streamlit_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header > div:nth-of-type(1) {display: none;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 st.title("Analiza biznesowa filmów")
 
 # ===================== INICJALIZACJA ST STATE =====================
