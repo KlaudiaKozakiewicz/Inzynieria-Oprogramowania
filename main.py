@@ -7,7 +7,11 @@ from datetime import date
 import os
 
 API_KEY = os.getenv("TMDB_API_KEY")
-
+if not API_KEY:
+    st.error("Brak TMDB_API_KEY! Dodaj go w ustawieniach Streamlit.")
+else:
+    st.success("API key załadowany poprawnie ✅")
+    
 # Aplikacja korzysta z danych TMDB API, ale nie jest oficjalnie powiązana z TMDB.
 
 
