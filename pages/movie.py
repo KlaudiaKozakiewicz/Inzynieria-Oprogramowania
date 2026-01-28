@@ -8,7 +8,20 @@ API_KEY = os.getenv("TMDB_API_KEY")
 
 # Aplikacja korzysta z danych TMDB API, ale nie jest oficjalnie powiązana z TMDB.
 
+# Ukrycie paska bocznego
+hide_streamlit_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header > div:nth-of-type(1) {display: none;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+# Ustawienia strony
+st.set_page_config(page_title="Film", page_icon="🎬", layout="wide")
+
+# Wyszukanie filmu na podstawie ID
 query_params = st.query_params
 movie_id = query_params.get("id")
 
@@ -16,6 +29,7 @@ if not movie_id:
     st.error("Brak ID filmu")
     st.stop()
 
+# Funkcja pobierająca szczegóły filmu
 @st.cache_data(ttl=3600)
 def fetch_movie_details(movie_id):
     r = requests.get(
@@ -27,8 +41,6 @@ def fetch_movie_details(movie_id):
         }
     )
     return r.json()
-
-movie = fetch_movie_details(movie_id)
 
 # pobieranie filmów z tych samych gatunków
 @st.cache_data(ttl=3600)
@@ -44,66 +56,27 @@ def fetch_similar_genre_movies(genre_ids):
     )
     return r.json().get("results", [])
 
+# Funkcja pobierająca ID filmów
+@st.cache_data(ttl=3600)
+def get_genre_ids():
+    r = requests.get(
+        "https://api.themoviedb.org/3/genre/movie/list",
+        params={"api_key": API_KEY, "language": "pl-PL"}
+    )
+    genres = r.json().get("genres", [])
+    # zamiana nazwa -> id
+    return {g['name']: g['id'] for g in genres}
 
-MANDATORY_GENRES = {"Animation", "Horror", "Documentary", "Fantasy", "Western",
-                    "Document", "Historical", "Musical", "Sci-Fi", "War"}
-
+# Funkcja znajdująca słowa kluczowe dla filmu
 @st.cache_data(ttl=3600)
 def get_movie_keywords(movie_id):
     r = requests.get(
         f"https://api.themoviedb.org/3/movie/{movie_id}/keywords",
         params={"api_key": API_KEY}
     )
-    return r.json().get("keywords", [])  # lista słowników: {"id":..., "name":...}
+    return r.json().get("keywords", [])
 
-def custom_recommendations(movie, candidate_movies, top_n=5):
-    movie_genres = {g['name'] for g in movie.get('genres', [])}
-    scored_movies = []
-    
-    for m in candidate_movies:
-        if m['id'] == movie['id']:
-            continue
-        m_genres = {g['name'] for g in m.get('genres', [])}
-        common_genres = movie_genres.intersection(m_genres)
-        score = len(common_genres)
-        scored_movies.append((score, m, common_genres))  # <-- krotka z 3 elementami
-    
-    scored_movies.sort(key=lambda x: x[0], reverse=True)
-    return scored_movies[:top_n]
-
-# pobieranie kandydatów
-movie_genre_ids = [g['id'] for g in movie.get('genres', [])]
-candidate_movies = fetch_similar_genre_movies(movie_genre_ids)
-
-# konwertujemy, żeby każde movie miało wspólne gatunki
-recommendations = custom_recommendations(movie, candidate_movies, top_n=5)
-
-st.set_page_config(
-    page_title="movie",
-    page_icon="🎬",
-    layout="wide"
-)
-
-st.title(movie["title"])
-
-col1, col2 = st.columns([1, 3])
-
-with col1:
-    if movie.get("poster_path"):
-        st.image(
-            f"https://image.tmdb.org/t/p/w300{movie['poster_path']}"
-        )
-
-with col2:
-    st.write(f"**Ocena:** {movie['vote_average']} ({movie['vote_count']} głosów)")
-    st.write(f"**Premiera:** {movie.get('release_date')}")
-    st.write(f"**Czas trwania:** {movie.get('runtime')} min")
-    st.write("**Gatunki:** " + ", ".join(g["name"] for g in movie["genres"]))
-    st.markdown(
-        f"<p style='font-size:0.9rem'>{movie.get('overview','Brak opisu')}</p>",
-        unsafe_allow_html=True
-    )
-
+# Funkcja do odczytania gatunków
 @st.cache_data(ttl=3600)
 def fetch_genres():
     r = requests.get(
@@ -112,6 +85,7 @@ def fetch_genres():
     )
     return r.json()["genres"]
 
+# Funkcja do odczytania czasu trwania filmu
 @st.cache_data(ttl=3600)
 def get_runtime(movie_id):
     r = requests.get(
@@ -120,42 +94,190 @@ def get_runtime(movie_id):
     )
     return r.json().get("runtime", 0)
 
+# Funkcja pobierająca filmy po gatunkach
+@st.cache_data(ttl=3600)
+def get_movies_by_genres(genre_ids, language=None, n=51):
+    movies = []
+    page = 1
+    while len(movies) < n:
+        params = {
+            "api_key": API_KEY,
+            "with_genres": ",".join(map(str, genre_ids)),
+            "language": "pl-PL",
+            "sort_by": "popularity.desc",
+            "page": page,
+            "include_adult": False
+        }
+        if language:
+            params["with_original_language"] = language
+        r = requests.get("https://api.themoviedb.org/3/discover/movie", params=params)
+        results = r.json().get("results", [])
+        for m in results:
+            details = fetch_movie_details(m['id'])
+            movies.append(details)
+            if len(movies) >= n:
+                break
+        page += 1
+    return movies[:n]
+
+# Słownik gatunków obowiązkowych, dla których rekomendacja musi zgadzać się z wyszukiwanym filmem
+MANDATORY_GENRES = {"Animation", "Horror", "Documentary", "Fantasy", "Western",
+                    "Document", "Historical", "Musical", "Sci-Fi", "War"}
+
+# Funkcja do tworzenia rekomendacji
+@st.cache_data(ttl=3600)
+def custom_recommendations(movie, candidate_movies, top_n=51):
+    movie_genres = {g['name'] for g in movie.get('genres', [])}
+    movie_keywords = {k['name'] for k in get_movie_keywords(movie['id'])}
+    mandatory_in_movie = MANDATORY_GENRES.intersection(movie_genres)
+    
+    candidate_keywords = {m['id']: {k['name'] for k in get_movie_keywords(m['id'])} 
+                          for m in candidate_movies}
+
+    scored_movies = []
+    for m in candidate_movies:
+        if m['id'] == movie['id']:
+            continue
+        m_genres = {g['name'] for g in m.get('genres', [])}
+
+        # Filtrowanie po gatunkach obowiązkowych
+        if mandatory_in_movie and not mandatory_in_movie.issubset(m_genres):
+            continue  # odrzucamy film jeśli nie ma wymaganego gatunku
+        
+        score = 0   # waga (wynik filmu)
+
+        # Liczba wspólnych gatunków
+        common_genres = movie_genres.intersection(m_genres)
+        score += len(common_genres) * 2
+        if len(common_genres) >= 2:
+            score += 3  # zwiększenie wagi (wyniku filmu)
+
+        m_keywords = candidate_keywords[m['id']]
+        common_keywords = movie_keywords.intersection(m_keywords)
+        score += len(common_keywords)
+
+        if len(common_keywords) >= 3:
+            score += 4  # zwiększenie wagi (wyniku filmu)
+
+        scored_movies.append((score, m, common_genres, common_keywords))
+
+    scored_movies.sort(key=lambda x: x[0], reverse=True)
+    return scored_movies[:top_n]
+
+# Pobranie szczegółów filmu
+movie = fetch_movie_details(movie_id)
+# Stworzenie słownika gatunek: ID
+genre_name_to_id = get_genre_ids()
+# Lista ID gatunków
+movie_genre_ids = [genre_name_to_id[g['name']] for g in movie.get('genres', []) if g['name'] in genre_name_to_id]
+
+
+## Wyświetlanie informacji o filmie:
+
+st.title(movie["title"], text_alignment="center")
+
+if movie.get('tagline'):
+    st.markdown(f"*{movie.get('tagline', '')}*", text_alignment="center")
+
+st.markdown(
+"<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 30px;'>",
+unsafe_allow_html=True
+)
+
+col_left, div, col_right = st.columns([1, 0.2, 4])
+
+with col_left:
+    if movie.get("poster_path"):
+        st.image(f"https://image.tmdb.org/t/p/w400{movie['poster_path']}")
+    else:
+        st.write("Brak plakatu")
+
+with div:
+    st.markdown("<div style='border-left:1px solid #ddd; height:100%;'></div>",
+            unsafe_allow_html=True)
+
+with col_right:
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write(f"**Oryginalny tytuł:** {movie.get('original_title', '–')}")
+        genres = ", ".join([g['name'] for g in movie.get('genres', [])])
+        st.write(f"**Gatunki:** {genres or '–'}")
+        st.write(f"**Ocena:** {movie.get('vote_average', '–')} ({movie.get('vote_count', '–')} głosów)")
+        runtime = movie.get('runtime')
+        st.write(f"**Czas trwania:** {runtime} min" if runtime else "Czas trwania: –")
+
+    with col2:
+        st.write(f"**Data wydania:** {movie.get('release_date', '–')}")
+        languages = ', '.join([l['name'] for l in movie.get('spoken_languages', [])])
+        st.write(f"**Język:** {languages or '–'}")
+        st.write(f"**Budżet:** {movie.get('budget', '–')}$")
+        st.write(f"**Przychód:** {movie.get('revenue', '–')}$")
+
+    st.markdown(
+        "<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 20px;'>",
+        unsafe_allow_html=True
+    )
+
+    keywords = get_movie_keywords(movie_id)
+    keyword_names = [k['name'] for k in keywords]
+    if keyword_names:
+        st.markdown("**Słowa kluczowe:** " + ", ".join(keyword_names))
+
+    st.markdown(
+        "<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 20px;'>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<p><strong>Opis:</strong> {movie.get('overview', 'Brak opisu')}</p>",
+        unsafe_allow_html=True
+    )
+
+
 st.divider()
 
+# Przycisk do wyboru rekomendacji lub analizy
 selected_tab = st.pills(options=["Rekomendacje na podstawie filmu", "Analiza"], 
-         label="Wybierz opcję:",
-         default="Rekomendacje na podstawie filmu",
+         label="Wybierz opcję:", default="Rekomendacje na podstawie filmu",
          width="stretch")
 
+
+# Pobranie gatunków
 genres = fetch_genres()
 
+st.divider()
 
-
+# Wyświetlenie 10 rekomendowanych filmów
 if selected_tab == "Rekomendacje na podstawie filmu":
-    if recommendations:
+    language_code = movie.get('spoken_languages', [{}])[0].get('iso_639_1')
+    candidate_movies = get_movies_by_genres(movie_genre_ids, language=language_code, n=10)
+
+    recommendations = custom_recommendations(movie, candidate_movies, top_n=10)
+
+    for score, rec, common_genres, common_keywords in recommendations:
+        col1, div, col2 = st.columns([1, 0.2, 4])
+        st.markdown("<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 30px;'>",
+                    unsafe_allow_html=True)
+        with col1:
+            if rec.get('poster_path'):
+                st.image(f"https://image.tmdb.org/t/p/w200{rec['poster_path']}")
+        with div:
+            st.markdown("<div style='border-left:1px solid #ddd; height:100%;'></div>", unsafe_allow_html=True) 
+        with col2:
+            st.markdown(f"<h3>{rec['title']} ({rec.get('release_date','')[:4]})</h3>", unsafe_allow_html=True)
+            st.markdown("<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 30px;'>",
+                    unsafe_allow_html=True)
+            st.write(f"*Ocena:* {rec.get('vote_average', '–')} ({movie.get('vote_count', '–')} głosów)")
+            st.write(f"*Wspólne gatunki:* {', '.join(common_genres) or '–'}")
+            st.write(f"*Wspólne słowa kluczowe:* {', '.join(list(common_keywords)[:5]) or '–'}")
+            if st.button("Zobacz szczegóły", key=f"details_{rec['id']}"):
+                st.switch_page("pages/movie.py", query_params={"id": rec["id"]})
         
-        for score, rec, common_genres in recommendations:
-            col1, col2 = st.columns([1, 3])
-            
-            with col1:
-                if rec.get("poster_path"):
-                    st.image(f"https://image.tmdb.org/t/p/w200{rec['poster_path']}")
-                else:
-                    st.write("Brak plakatu")
-            
-            with col2:
-                st.markdown(f"**{rec.get('title', 'Brak tytułu')} ({rec.get('release_date','')[:4]})**")
-                st.write(f"Wspólne gatunki: {', '.join(common_genres) or '–'}")
-                
-                if st.button("Zobacz szczegóły", key=f"rec_{rec['id']}"):
-                    st.switch_page("pages/movie.py", query_params={"id": rec["id"]})
-
-            st.divider()
                 
 
-
-
-# ========= Analizy ============
+# Analizy 
 if selected_tab == "Analiza":
 
     st.subheader("Popularność na tle podobnych filmów", help = "Popularność to dynamiczny wskaźnik TMDB oparty o aktywność i zainteresowanie użytkowników")
@@ -178,8 +300,6 @@ if selected_tab == "Analiza":
             f"{avg_popularity:.1f}",
             delta=f"{movie['popularity'] - avg_popularity:+.1f}"
         )
-
-
 
 
 
@@ -221,8 +341,8 @@ if selected_tab == "Analiza":
         y=alt.Y("vote_count:Q", title="Liczba głosów"),
         color=alt.condition(
             alt.datum.highlight,
-            alt.value("#9b6dc6"),  # jasnofioletowy
-            alt.value("#90CAF9")   # jasnoniebieski 
+            alt.value("#5d2266"),  # ciemnofioletowy
+            alt.value("#9b6dc6")   # jasnofioletowy
         ),
         tooltip=["title", "vote_count", "vote_average"]
     )
@@ -252,7 +372,7 @@ if selected_tab == "Analiza":
     # Ustawienie kolorów według kategorii
     color_scale = alt.Scale(
         domain=["Budżet", "Przychody"],
-        range=["#3f2893", "#9b6dc6"]  #
+        range=["#5d2266", "#9b6dc6"]
     )
 
     chart_fin = alt.Chart(df_fin).mark_bar(color="#1f77b4").encode(
@@ -274,7 +394,7 @@ if selected_tab == "Analiza":
 
 
 
-# ======== Przycisk powrotu do menu ===========
+# Przycisk powrotu do menu 
 placeholder = st.empty()
 
 with placeholder.container():
@@ -288,7 +408,7 @@ st.markdown(
     .element-container:nth-of-type(1) button {
         position: fixed;
         bottom: 20px;
-        right: 20px;
+        left: 20px;
         z-index: 999;
         width: 50px;
     }
