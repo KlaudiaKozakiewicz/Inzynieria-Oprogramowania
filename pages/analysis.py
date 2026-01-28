@@ -156,7 +156,7 @@ st.markdown(
     .element-container:nth-of-type(1) button {
         position: fixed;
         bottom: 20px;
-        right: 20px;
+        left: 20px;
         z-index: 999;
         width: 50px;
     }
