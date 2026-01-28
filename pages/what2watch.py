@@ -26,6 +26,7 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 ### Funkcje
 
+# Funkcja do odczytania gatunków
 @st.cache_data(ttl=3600)
 def fetch_genres():
     r = requests.get(
@@ -34,6 +35,8 @@ def fetch_genres():
     )
     return r.json()["genres"]
 
+# Funkcja do odczytania czasu trwania filmu
+@st.cache_data(ttl=3600)
 def get_runtime(movie_id):
     r = requests.get(
         f"https://api.themoviedb.org/3/movie/{movie_id}",
@@ -41,6 +44,7 @@ def get_runtime(movie_id):
     )
     return r.json().get("runtime", 0)
 
+# Funkcja do wyszukania aktorów
 @st.cache_data(ttl=3600)
 def search_actors(query):
     if not query or len(query) < 1:
@@ -73,6 +77,7 @@ def search_actors(query):
     
     return names
 
+# Funkcja do wyszukania obsady technicznej
 @st.cache_data(ttl=3600)
 def search_crew(query):
     if not query or len(query) < 1:
@@ -106,6 +111,7 @@ def search_crew(query):
 
     return names
 
+# Funkcja do wyszukania słów kluczowych
 @st.cache_data(ttl=3600)
 def search_keywords(query):
     if not query or len(query) < 1:
@@ -131,6 +137,7 @@ def search_keywords(query):
 
     return names
 
+# Funkcja do wyszukania filmów na podstawie filtrów
 @st.cache_data(ttl=600)
 def search_movies(genre_ids, year_from, year_to, runtime, min_rating, min_vote_count, language,
                   actors, crew, keywords, excluded_keywords, popular_only, adult_only, trending, 
@@ -190,6 +197,10 @@ def search_movies(genre_ids, year_from, year_to, runtime, min_rating, min_vote_c
     if excluded_keywords:
         params["without_keywords"] = ",".join(map(str, excluded_keywords))
 
+    if runtime:
+        params["with_runtime.gte"] = runtime[0]
+        params["with_runtime.lte"] = runtime[1]
+
     params["page"] = page
 
     r = requests.get(url, params=params)
@@ -202,7 +213,7 @@ genres = fetch_genres()
 GENRE_NAME_TO_ID = {g["name"]: g["id"] for g in genres}
 
 
-## Ustawienie stanów
+## Ustawienie stanów:
 
 # Aktorzy
 if "selected_actors" not in st.session_state:
@@ -367,7 +378,7 @@ with div4:
 
 with col6:
     st.session_state.min_vote_count = st.slider("Minimalna liczba głosów", min_value=0, max_value=5000,
-                                                value=500, step=50,
+                                                value=1000, step=50,
                                                 help="Filmy z mniejszą liczbą ocen mogą być mniej wiarygodne")
          
 with st.expander("Filtry dodatkowe"):
@@ -387,9 +398,6 @@ with st.expander("Filtry dodatkowe"):
             time_window = st.radio("Wybierz okres:", ["Dzisiaj", "W tym tygodniu"], horizontal=True)
         else:
             time_window = None
-
-    def on_toggle_change():
-        st.experimental_rerun()
 
     with col10:
         new_releases = st.toggle("Tylko nowości", key="new_releases_toggle",
@@ -458,7 +466,7 @@ with st.expander("Filtry dodatkowe"):
         with col13:
             st.markdown("Uwzględnij słowa:", text_alignment="center")
             new_keyword = st_searchbox(search_keywords,
-                                       placeholder="Np. time travel, based on novel, dystopia...",
+                                       placeholder="Np. ogre, time travel...",
                                        key=f"keyword_search_{st.session_state.keyword_search_key}")
 
             if new_keyword and new_keyword not in st.session_state.selected_keywords:
@@ -489,7 +497,7 @@ with st.expander("Filtry dodatkowe"):
                 if to_remove:
                     st.session_state.excluded_keywords.remove(to_remove)
                     st.rerun()
-            
+ 
         conflicting_keywords = set(st.session_state.selected_keywords) & set(st.session_state.excluded_keywords)
 
         if conflicting_keywords:
@@ -516,6 +524,9 @@ excluded_keyword_ids = [
     if name in st.session_state.excluded_keyword_name_to_id
 ]
 
+# Zamiana wartości dla 'time_window'
+time_window_dict = {"Dzisiaj": "day", "W tym tygodniu": "week"}
+time_window_new = time_window_dict.get(time_window) if time_window else "day"
 
 if st.button("Szukaj", use_container_width=True):
     st.session_state.search_page = 1
@@ -534,7 +545,7 @@ if st.button("Szukaj", use_container_width=True):
         popular_only=popular_only,
         adult_only=adult_only,
         trending=trending,
-        time_window=time_window,
+        time_window=time_window_new,
         new_releases=st.session_state.new_releases_toggle,
         page=st.session_state.search_page
     )
@@ -542,11 +553,14 @@ if st.button("Szukaj", use_container_width=True):
     st.session_state.search_clicked = True
 
 
-st.divider()
-
 if st.session_state.search_clicked:
     if st.session_state.search_results:
-        st.subheader("Wyniki wyszukiwania")
+        st.subheader("Wyniki wyszukiwania", text_alignment="center")
+
+        st.markdown(
+                "<hr style='border: 0.5px solid #ddd; margin-top: 4px; margin-bottom: 20px;'>",
+                unsafe_allow_html=True
+            )
 
         for movie in st.session_state.search_results:
             col1, col2 = st.columns([1, 4])
@@ -554,11 +568,15 @@ if st.session_state.search_clicked:
                 if movie.get("poster_path"):
                     st.image(f"https://image.tmdb.org/t/p/w200{movie['poster_path']}")
             with col2:
+                # Tytuł
+                st.markdown(f"### {movie.get('title', 'Brak tytułu')}")
+
+                # Gatunki
                 movie_genres = [g['name'] for g in genres if g['id'] in movie.get('genre_ids', [])]
                 if movie_genres:
                     st.markdown("**Gatunki:** " + ", ".join(movie_genres))
 
-                # ocena i liczba głosów
+                # Ocena i liczba głosów
                 vote_avg = movie.get("vote_average", 0)
                 vote_count = movie.get("vote_count", 0)
                 st.markdown(f"**Ocena:** {vote_avg} ({vote_count} głosów)")
@@ -574,7 +592,7 @@ if st.session_state.search_clicked:
 
                 # Opis filmu
                 overview = movie.get("overview", "Brak opisu")
-                st.markdown(f"<p style='text-align: justify; 'font-size:0.85rem'>{overview}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: justify; font-size:0.85rem;'>{overview}</p>", unsafe_allow_html=True)
 
             if st.button("Zobacz szczegóły", width="stretch", key=f"movie_{movie['id']}"):
                         st.switch_page("pages/movie.py", query_params={"id": movie["id"]})
@@ -587,7 +605,6 @@ if st.session_state.search_clicked:
 
 
 # Przycisk powrotu do strony głównej
-
 placeholder = st.empty()
 with placeholder.container():
     if st.button("🏠︎"):
@@ -600,7 +617,7 @@ st.markdown(
     .element-container:nth-of-type(1) button {
         position: fixed;
         bottom: 20px;
-        right: 20px;
+        left: 20px;
         z-index: 999;
         width: 50px;
     }
